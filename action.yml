@@ -13,7 +13,7 @@ inputs:
     required: false
     default: ""
   image:
-    description: The image to deploy, best by digest, e.g. ghcr.io/acme/web@${{ steps.build.outputs.digest }}.
+    description: The image to deploy, best by digest (ghcr.io/acme/web@sha256:...), as docker/build-push-action outputs it.
     required: true
   token:
     description: A personal access token bound to the project with the write scope. Keep it in a secret.

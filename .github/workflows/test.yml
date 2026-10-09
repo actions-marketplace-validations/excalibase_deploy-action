@@ -9,18 +9,18 @@ jobs:
   shellcheck:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - run: shellcheck -x deploy.sh test/run.sh
   script:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - run: test/run.sh
   # The action as a workflow uses it, against the mock API.
   action:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Start the mock API
         run: |
           python3 test/mock_api.py legacy-live "$RUNNER_TEMP/port" "$RUNNER_TEMP/requests" &
