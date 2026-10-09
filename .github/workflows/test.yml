@@ -1,0 +1,45 @@
+name: Test
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  shellcheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: shellcheck -x deploy.sh test/run.sh
+  script:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: test/run.sh
+  # The action as a workflow uses it, against the mock API.
+  action:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Start the mock API
+        run: |
+          python3 test/mock_api.py legacy-live "$RUNNER_TEMP/port" "$RUNNER_TEMP/requests" &
+          for _ in $(seq 50); do [ -s "$RUNNER_TEMP/port" ] && break; sleep 0.1; done
+          echo "API_URL=http://127.0.0.1:$(cat "$RUNNER_TEMP/port")/api" >> "$GITHUB_ENV"
+      - id: deploy
+        uses: ./
+        with:
+          app: proj-1/app-1
+          image: ghcr.io/acme/web@sha256:abababababababababababababababababababababababababababababababab
+          token: excali_test_token
+          api-url: ${{ env.API_URL }}
+          commit-sha: 9fceb02d0ae598e95dc970b74767f19372d61af8
+      - name: The outputs name the live deploy
+        env:
+          URL: ${{ steps.deploy.outputs.url }}
+          STATUS: ${{ steps.deploy.outputs.status }}
+          DEPLOY_ID: ${{ steps.deploy.outputs.deploy-id }}
+        run: |
+          test "$URL" = https://web.apps.test
+          test "$STATUS" = succeeded
+          test "$DEPLOY_ID" = dep-1

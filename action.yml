@@ -1,0 +1,56 @@
+name: Deploy to Excalibase
+description: Deploy a pushed image to an Excalibase app and wait until it is live.
+author: Excalibase
+branding:
+  icon: upload-cloud
+  color: purple
+inputs:
+  app:
+    description: The app, as <project id>/<app id>, or the app id alone when `project` is set.
+    required: true
+  project:
+    description: The project id, when `app` is the app id alone.
+    required: false
+    default: ""
+  image:
+    description: The image to deploy, best by digest, e.g. ghcr.io/acme/web@${{ steps.build.outputs.digest }}.
+    required: true
+  token:
+    description: A personal access token bound to the project with the write scope. Keep it in a secret.
+    required: true
+  api-url:
+    description: The Excalibase API.
+    required: false
+    default: https://app.excalibase.io/api
+  commit-sha:
+    description: The commit the image was built from; shown beside the deploy in Studio.
+    required: false
+    default: ${{ github.sha }}
+  timeout:
+    description: Seconds to wait for the deploy to be live before failing the step.
+    required: false
+    default: "900"
+outputs:
+  deploy-id:
+    description: The deploy's id.
+    value: ${{ steps.deploy.outputs.deploy-id }}
+  status:
+    description: How the deploy ended (succeeded on success).
+    value: ${{ steps.deploy.outputs.status }}
+  url:
+    description: Where the app is served.
+    value: ${{ steps.deploy.outputs.url }}
+runs:
+  using: composite
+  steps:
+    - id: deploy
+      shell: bash
+      run: '"$GITHUB_ACTION_PATH/deploy.sh"'
+      env:
+        INPUT_APP: ${{ inputs.app }}
+        INPUT_PROJECT: ${{ inputs.project }}
+        INPUT_IMAGE: ${{ inputs.image }}
+        INPUT_TOKEN: ${{ inputs.token }}
+        INPUT_API_URL: ${{ inputs.api-url }}
+        INPUT_COMMIT_SHA: ${{ inputs.commit-sha }}
+        INPUT_TIMEOUT: ${{ inputs.timeout }}
